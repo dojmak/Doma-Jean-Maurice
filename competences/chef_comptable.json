@@ -1,0 +1,101 @@
+{
+  "id": "chef_comptable",
+  "titre": "Chef Comptable",
+  "description": "Le chef comptable supervise l'ensemble des opérations comptables de l'entreprise, garantit la fiabilité des états financiers et assure la conformité aux obligations légales et fiscales.",
+  "niveau": "Expert",
+  "domaine": "Finance et Comptabilité",
+  "competences": [
+    {
+      "id": "comptabilite_generale",
+      "titre": "Comptabilité générale",
+      "description": "Maîtrise des principes comptables fondamentaux (PCG, IFRS), enregistrement des opérations courantes, lettrage des comptes.",
+      "indicateurs": [
+        "Saisie et contrôle des écritures comptables",
+        "Rapprochement bancaire",
+        "Gestion des immobilisations et amortissements",
+        "Suivi des comptes fournisseurs et clients"
+      ]
+    },
+    {
+      "id": "cloture_comptes",
+      "titre": "Clôture des comptes",
+      "description": "Réalisation des travaux de clôture mensuelle, trimestrielle et annuelle.",
+      "indicateurs": [
+        "Établissement des provisions",
+        "Révision des comptes et justification des soldes",
+        "Préparation du bilan et du compte de résultat",
+        "Coordination avec les commissaires aux comptes"
+      ]
+    },
+    {
+      "id": "fiscalite",
+      "titre": "Fiscalité",
+      "description": "Gestion des obligations fiscales de l'entreprise dans le respect des délais légaux.",
+      "indicateurs": [
+        "Déclaration de TVA (CA3, CA12)",
+        "Déclaration de l'impôt sur les sociétés (IS)",
+        "Déclaration des acomptes IS",
+        "Veille fiscale et application des nouvelles réglementations"
+      ]
+    },
+    {
+      "id": "etats_financiers",
+      "titre": "Établissement des états financiers",
+      "description": "Élaboration et présentation des documents financiers réglementaires.",
+      "indicateurs": [
+        "Bilan comptable",
+        "Compte de résultat",
+        "Annexes légales",
+        "Liasse fiscale"
+      ]
+    },
+    {
+      "id": "management",
+      "titre": "Management d'équipe",
+      "description": "Encadrement et animation de l'équipe comptable.",
+      "indicateurs": [
+        "Organisation et répartition des tâches",
+        "Formation et montée en compétences des collaborateurs",
+        "Évaluation des performances",
+        "Gestion des priorités et des délais"
+      ]
+    },
+    {
+      "id": "outils_informatiques",
+      "titre": "Outils et logiciels comptables",
+      "description": "Maîtrise des outils informatiques dédiés à la comptabilité.",
+      "indicateurs": [
+        "ERP (SAP, Sage, Cegid, etc.)",
+        "Tableurs avancés (Excel, LibreOffice Calc)",
+        "Outils de reporting et de contrôle de gestion",
+        "Dématérialisation et archivage numérique"
+      ]
+    },
+    {
+      "id": "controle_interne",
+      "titre": "Contrôle interne",
+      "description": "Mise en place et suivi des procédures de contrôle interne comptable.",
+      "indicateurs": [
+        "Rédaction des procédures comptables",
+        "Séparation des tâches et autorisations",
+        "Détection et prévention des anomalies",
+        "Audit interne des processus comptables"
+      ]
+    }
+  ],
+  "prerequis": [
+    "Bac+3 minimum en comptabilité, gestion ou finance (DCG, Licence CCA)",
+    "Expérience de 5 ans minimum en comptabilité",
+    "Connaissance du Plan Comptable Général (PCG)",
+    "Maîtrise des obligations fiscales françaises"
+  ],
+  "certifications_recommandees": [
+    "DSCG (Diplôme Supérieur de Comptabilité et de Gestion)",
+    "DEC (Diplôme d'Expertise Comptable)"
+  ],
+  "evolution_possible": [
+    "Directeur Administratif et Financier (DAF)",
+    "Expert-comptable",
+    "Contrôleur de gestion senior"
+  ]
+}
