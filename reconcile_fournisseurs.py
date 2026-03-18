@@ -31,6 +31,7 @@ import re
 import sys
 from datetime import datetime
 from difflib import SequenceMatcher
+from itertools import combinations
 from pathlib import Path
 import pandas as pd
 from openpyxl import Workbook
@@ -44,6 +45,7 @@ CLR_ECART_GL2   = "FF9999"  # rouge     -- absent dans GL1
 CLR_MATCH       = "C6EFCE"  # vert      -- rapprochees
 CLR_MATCH_FONT  = "276221"  # vert fonce
 CLR_ALT_ROW     = "F2F2F2"  # gris clair
+CLR_TCJ         = "E2EFDA"  # vert pale  -- suggestions TCJ
 PASSE_COLORS = {1: "70AD47", 2: "A9D18E", 3: "FFD966", 4: "F4B942", 5: "FF7F50"}
 # --- Aliases colonnes ---------------------------------------------------------
 DATE_ALIASES   = ["date", "dat", "dt", "date_op", "date_operation", "date_ecriture",
@@ -174,8 +176,64 @@ def _dates_proches(d1, d2, jours: int) -> bool:
     return abs((d1 - d2).days) <= jours
 def _montants_ok(m1: float, m2: float, tol: float = 1.0) -> bool:
     return abs(abs(m1) - abs(m2)) <= tol
+# --- TCJ Ameliore (Tri Croissant Juxtapose) ------------------------------------
+def tcj_ameliore(df1: pd.DataFrame, df2: pd.DataFrame, lookahead: int = 4) -> list:
+    """
+    Analyse les suspens residuels (non rapproches) en cherchant des combinaisons
+    additives d'ecritures qui s'equilibrent entre GL1 et GL2.
+      - 1 ecriture GL1 = n ecritures GL2 (n <= lookahead)
+      - n ecritures GL1 = 1 ecriture GL2 (n <= lookahead)
+    Retourne une liste de suggestions de rapprochement.
+    """
+    u1 = df1[~df1["_matched"]].copy().sort_values("montant_signe")
+    u2 = df2[~df2["_matched"]].copy().sort_values("montant_signe")
+    suggestions = []
+
+    for i1, row1 in u1.iterrows():
+        m1 = abs(row1["montant_signe"])
+        cands = [j for j in u2.index if abs(u2.at[j, "montant_signe"]) <= m1 + 1]
+        for n in range(2, min(lookahead + 1, len(cands) + 1)):
+            matched = False
+            for combo in combinations(cands, n):
+                total = sum(abs(u2.at[j, "montant_signe"]) for j in combo)
+                if abs(total - m1) <= 1.0:
+                    suggestions.append({
+                        "type":    f"1 GL1 -> {n} GL2",
+                        "gl1_idx": [i1],
+                        "gl2_idx": list(combo),
+                        "montant": m1,
+                        "ecart":   round(total - m1, 0),
+                    })
+                    matched = True
+                    break
+            if matched:
+                break
+
+    for i2, row2 in u2.iterrows():
+        m2 = abs(row2["montant_signe"])
+        cands = [j for j in u1.index if abs(u1.at[j, "montant_signe"]) <= m2 + 1]
+        for n in range(2, min(lookahead + 1, len(cands) + 1)):
+            matched = False
+            for combo in combinations(cands, n):
+                total = sum(abs(u1.at[j, "montant_signe"]) for j in combo)
+                if abs(total - m2) <= 1.0:
+                    suggestions.append({
+                        "type":    f"{n} GL1 -> 1 GL2",
+                        "gl1_idx": list(combo),
+                        "gl2_idx": [i2],
+                        "montant": m2,
+                        "ecart":   round(total - m2, 0),
+                    })
+                    matched = True
+                    break
+            if matched:
+                break
+
+    return suggestions
+
 # --- Moteur de rapprochement --------------------------------------------------
-def rapprocher(df1: pd.DataFrame, df2: pd.DataFrame, seuil: float):
+def rapprocher(df1: pd.DataFrame, df2: pd.DataFrame, seuil: float,
+               tcj_lookahead: int = 4):
     matches = []
     def try_match(i1, i2, passe):
         if df1.at[i1, "_matched"] or df2.at[i2, "_matched"]:
@@ -241,7 +299,12 @@ def rapprocher(df1: pd.DataFrame, df2: pd.DataFrame, seuil: float):
     df_m  = pd.DataFrame(matches)
     df_e1 = df1[~df1["_matched"]].copy()
     df_e2 = df2[~df2["_matched"]].copy()
-    return df_m, df_e1, df_e2
+
+    print("[TCJ AMELIORE] Analyse des suspens residuels ...")
+    tcj_sugg = tcj_ameliore(df1, df2, lookahead=tcj_lookahead)
+    print(f"  => {len(tcj_sugg)} suggestion(s) TCJ")
+
+    return df_m, df_e1, df_e2, tcj_sugg
 # --- Mise en forme Excel ------------------------------------------------------
 def _fill(color: str) -> PatternFill:
     return PatternFill("solid", fgColor=color)
@@ -327,7 +390,7 @@ def sheet_rapprochees(ws, df, devise):
         ], fill_color=PASSE_COLORS.get(passe, CLR_MATCH), money_cols=[6, 7, 11, 12], devise=devise)
     auto_width(ws)
 def sheet_recapitulatif(ws, df1, df2, df_m, df_e1, df_e2,
-                         fournisseur, devise, lbl1, lbl2):
+                         fournisseur, devise, lbl1, lbl2, tcj_suggestions=None):
     ws.merge_cells("A1:D1")
     t = ws["A1"]
     t.value     = f"RAPPROCHEMENT FOURNISSEUR -- {fournisseur.upper()}"
@@ -364,6 +427,7 @@ def sheet_recapitulatif(ws, df1, df2, df_m, df_e1, df_e2,
     kv(12, "Taux de rapprochement",       f"{round(n_m/total*100,1) if total else 0} %")
     kv(13, f"Ecarts GL1 (absent dans {lbl2})", len(df_e1))
     kv(14, f"Ecarts GL2 (absent dans {lbl1})", len(df_e2))
+    kv(15, "Suggestions TCJ Ameliore", len(tcj_suggestions) if tcj_suggestions else 0)
     ws["A16"] = "DETAIL PAR PASSE"
     ws["A16"].font = _font(bold=True, color=CLR_HEADER_FILL)
     passe_labels = {
@@ -428,6 +492,44 @@ def sheet_detail(ws, df_e1, df_e2, lbl1, lbl2, devise):
             if col in [4, 5, 9, 10] and isinstance(val, (int, float)):
                 c.number_format = _money(devise)
     auto_width(ws)
+def sheet_tcj(ws, df1, df2, suggestions, lbl1, lbl2, devise):
+    ws["A1"] = "TCJ AMELIORE -- Tri Croissant Juxtapose -- Suggestions de rapprochement"
+    ws["A1"].font = _font(bold=True, color=CLR_HEADER_FONT, size=12)
+    ws["A1"].fill = _fill(CLR_HEADER_FILL)
+    ws.row_dimensions[1].height = 22
+
+    if not suggestions:
+        ws["A2"] = "Aucune suggestion de rapprochement TCJ identifiee."
+        ws["A2"].font = _font(color="666666")
+        return
+
+    write_headers(ws,
+        ["Type", f"Montant {lbl1}", f"Montant {lbl2}", "Ecart",
+         f"Libelles {lbl1}", f"Libelles {lbl2}"],
+        fill_color="2E75B6")
+    ws.freeze_panes = "A3"
+
+    for i, s in enumerate(suggestions, 3):
+        gl1_libs = " | ".join(
+            str(df1.at[j, "libelle"]) for j in s["gl1_idx"] if j in df1.index
+        )
+        gl2_libs = " | ".join(
+            str(df2.at[j, "libelle"]) for j in s["gl2_idx"] if j in df2.index
+        )
+        gl1_total = sum(abs(df1.at[j, "montant_signe"])
+                        for j in s["gl1_idx"] if j in df1.index)
+        gl2_total = sum(abs(df2.at[j, "montant_signe"])
+                        for j in s["gl2_idx"] if j in df2.index)
+        write_row(ws, i, [
+            s["type"],
+            round(gl1_total, 0) or None,
+            round(gl2_total, 0) or None,
+            s["ecart"] or None,
+            gl1_libs,
+            gl2_libs,
+        ], fill_color=CLR_TCJ, money_cols=[2, 3, 4], devise=devise)
+    auto_width(ws)
+
 # --- Main ---------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser()
@@ -437,6 +539,8 @@ def main():
     parser.add_argument("--fournisseur", default="FOURNISSEUR")
     parser.add_argument("--inverser-sens", action="store_true")
     parser.add_argument("--seuil-similarite", type=float, default=0.3)
+    parser.add_argument("--tcj-lookahead", type=int, default=4,
+                        help="Nb max d'ecritures dans un groupe TCJ (defaut: 4)")
     parser.add_argument("--devise", default="FCFA")
     parser.add_argument("--gl1-label", default="GL Interne")
     parser.add_argument("--gl2-label", default="Releve Fournisseur")
@@ -455,16 +559,20 @@ def main():
         print("\n  Inversion de sens appliquee a GL2")
         df2["montant_signe"] = -df2["montant_signe"]
         df2["debit"],  df2["credit"] = df2["credit"].copy(), df2["debit"].copy()
-    print("\n[3/4] Rapprochement multi-passes...")
-    df_m, df_e1, df_e2 = rapprocher(df1, df2, args.seuil_similarite)
+    print("\n[3/4] Rapprochement multi-passes + TCJ Ameliore...")
+    df_m, df_e1, df_e2, tcj_sugg = rapprocher(
+        df1, df2, args.seuil_similarite, args.tcj_lookahead
+    )
     n_m, n_t = len(df_m), len(df1)
-    print(f"\n  => {n_m}/{n_t} rapprochees | {len(df_e1)} ecarts GL1 | {len(df_e2)} ecarts GL2")
+    print(f"\n  => {n_m}/{n_t} rapprochees | {len(df_e1)} ecarts GL1 | "
+          f"{len(df_e2)} ecarts GL2 | {len(tcj_sugg)} suggestion(s) TCJ")
     print(f"\n[4/4] Generation Excel : {args.output}")
     wb = Workbook()
     ws_recap = wb.active
     ws_recap.title = "Recapitulatif"
     sheet_recapitulatif(ws_recap, df1, df2, df_m, df_e1, df_e2,
-                        args.fournisseur, args.devise, args.gl1_label, args.gl2_label)
+                        args.fournisseur, args.devise, args.gl1_label, args.gl2_label,
+                        tcj_suggestions=tcj_sugg)
     ws_e1 = wb.create_sheet("Ecarts GL Interne")
     sheet_ecarts(ws_e1, df_e1, CLR_ECART_GL1, args.devise)
     ws_e2 = wb.create_sheet("Ecarts Releve Fournisseur")
@@ -473,6 +581,8 @@ def main():
     sheet_rapprochees(ws_m, df_m, args.devise)
     ws_d = wb.create_sheet("Detail Ecarts (cote a cote)")
     sheet_detail(ws_d, df_e1, df_e2, args.gl1_label, args.gl2_label, args.devise)
+    ws_tcj = wb.create_sheet("TCJ Ameliore")
+    sheet_tcj(ws_tcj, df1, df2, tcj_sugg, args.gl1_label, args.gl2_label, args.devise)
     wb.save(args.output)
     solde1 = df1["montant_signe"].sum()
     solde2 = df2["montant_signe"].sum()
@@ -482,6 +592,7 @@ def main():
     print("=" * 60)
     print(f"  Rapprochees : {n_m}/{n_t}  |  Taux : {round(n_m/n_t*100,1) if n_t else 0}%")
     print(f"  Ecarts GL1  : {len(df_e1)}  |  Ecarts GL2 : {len(df_e2)}")
+    print(f"  Suggestions TCJ : {len(tcj_sugg)}")
     print(f"  Ecart solde : {ecart:,.0f} {args.devise}")
     if abs(ecart) <= 1:
         print("  OK : Soldes equilibres")
