@@ -1,0 +1,155 @@
+{
+  "id": "chef_comptable_syscohada",
+  "titre": "Chef Comptable SYSCOHADA",
+  "description": "Le chef comptable SYSCOHADA supervise l'ensemble des opérations comptables selon le Système Comptable OHADA révisé (SYSCOHADA Révisé 2017), garantit la conformité aux Actes Uniformes OHADA et aux obligations fiscales des États membres.",
+  "niveau": "Expert",
+  "domaine": "Finance et Comptabilité",
+  "referentiel": "SYSCOHADA Révisé (en vigueur depuis le 1er janvier 2018)",
+  "zone_application": "États membres de l'OHADA (17 pays d'Afrique subsaharienne francophone)",
+
+  "competences": [
+    {
+      "id": "plan_comptable_syscohada",
+      "titre": "Maîtrise du Plan Comptable SYSCOHADA",
+      "description": "Connaissance et application du plan de comptes SYSCOHADA révisé, structuré en 9 classes.",
+      "indicateurs": [
+        "Classe 1 : Comptes de ressources durables (capitaux propres, dettes financières)",
+        "Classe 2 : Comptes d'actif immobilisé (immobilisations incorporelles, corporelles, financières)",
+        "Classe 3 : Comptes de stocks",
+        "Classe 4 : Comptes de tiers (fournisseurs, clients, État)",
+        "Classe 5 : Comptes de trésorerie",
+        "Classe 6 : Comptes de charges des activités ordinaires (AO)",
+        "Classe 7 : Comptes de produits des activités ordinaires (AO)",
+        "Classe 8 : Comptes des autres charges et des autres produits (HAO)",
+        "Classe 9 : Comptes des engagements hors bilan et comptes de la comptabilité analytique",
+        "Distinction activités ordinaires (AO) et hors activités ordinaires (HAO)"
+      ]
+    },
+    {
+      "id": "etats_financiers_syscohada",
+      "titre": "Établissement des états financiers SYSCOHADA",
+      "description": "Élaboration des états financiers annuels obligatoires selon le SYSCOHADA révisé.",
+      "indicateurs": [
+        "Bilan (actif et passif selon modèle SYSCOHADA)",
+        "Compte de résultat (distinguant AO et HAO)",
+        "Tableau des flux de trésorerie (méthode directe)",
+        "Tableau de variation des capitaux propres (système normal)",
+        "Notes annexes aux états financiers",
+        "Respect des trois systèmes : minimal simplifié, allégé, normal",
+        "Détermination du seuil d'appartenance au système applicable"
+      ]
+    },
+    {
+      "id": "cloture_syscohada",
+      "titre": "Clôture des comptes SYSCOHADA",
+      "description": "Réalisation des travaux de fin d'exercice conformément au SYSCOHADA.",
+      "indicateurs": [
+        "Inventaire physique des stocks et actifs",
+        "Calcul et comptabilisation des amortissements (linéaire, dégressif)",
+        "Constatation des dépréciations (anciennement provisions pour dépréciation)",
+        "Enregistrement des provisions pour risques et charges",
+        "Régularisation des charges et produits (charges constatées d'avance, produits constatés d'avance)",
+        "Traitement des écarts de conversion (monnaies étrangères)",
+        "Vérification de la concordance bilan/grand livre"
+      ]
+    },
+    {
+      "id": "fiscalite_ohada",
+      "titre": "Fiscalité dans l'espace OHADA",
+      "description": "Gestion des obligations fiscales propres aux États membres de l'OHADA.",
+      "indicateurs": [
+        "Taxe sur la Valeur Ajoutée (TVA) selon législation nationale applicable",
+        "Impôt sur les Bénéfices (BIC, IS selon le pays)",
+        "Contribution des Patentes / Taxe Professionnelle",
+        "Impôt Minimum Forfaitaire (IMF) ou équivalent",
+        "Retenues à la source (salaires, prestations, dividendes)",
+        "Taxe sur les salaires et contributions sociales (CNSS, IPRV, etc.)",
+        "Déclarations statistiques et fiscales (DSF)",
+        "Connaissances des spécificités fiscales du pays d'exercice (Sénégal, Côte d'Ivoire, Cameroun, etc.)"
+      ]
+    },
+    {
+      "id": "actes_uniformes_ohada",
+      "titre": "Actes Uniformes OHADA",
+      "description": "Application des textes juridiques uniformes OHADA impactant la comptabilité.",
+      "indicateurs": [
+        "Acte Uniforme relatif au Droit Comptable et à l'Information Financière (AUDCIF)",
+        "Acte Uniforme sur le Droit Commercial Général (tenue des livres obligatoires)",
+        "Acte Uniforme sur les Sociétés Commerciales et GIE (états financiers, dépôt)",
+        "Livre journal, grand livre, balance, livre d'inventaire",
+        "Obligations de dépôt des comptes annuels au RCCM",
+        "Respect des délais légaux de clôture et d'approbation des comptes"
+      ]
+    },
+    {
+      "id": "gestion_tresorerie",
+      "titre": "Gestion de la trésorerie",
+      "description": "Suivi et contrôle des flux de trésorerie dans le contexte africain.",
+      "indicateurs": [
+        "Rapprochements bancaires (comptes en FCFA et devises)",
+        "Gestion des caisses (espèces, caisse mobile money)",
+        "Suivi des virements UEMOA / CEMAC (SYSCEBNEAU)",
+        "Prévisions de trésorerie à court terme",
+        "Gestion des relations bancaires",
+        "Contrôle des encaissements Mobile Money (Orange Money, MTN Mobile Money, Wave, etc.)"
+      ]
+    },
+    {
+      "id": "management",
+      "titre": "Management de l'équipe comptable",
+      "description": "Encadrement et animation de l'équipe comptable.",
+      "indicateurs": [
+        "Organisation et répartition des tâches comptables",
+        "Formation aux spécificités du SYSCOHADA révisé",
+        "Supervision de la saisie et validation des écritures",
+        "Évaluation des collaborateurs",
+        "Gestion des délais de clôture et de reporting"
+      ]
+    },
+    {
+      "id": "outils_informatiques",
+      "titre": "Outils et logiciels comptables",
+      "description": "Maîtrise des outils informatiques utilisés dans l'espace OHADA.",
+      "indicateurs": [
+        "Logiciels locaux : Sage (Saari), COGESTIMA, GESCOM, Oméga",
+        "ERP internationaux adaptés SYSCOHADA : SAP, Microsoft Dynamics",
+        "Tableurs avancés (Excel, LibreOffice Calc)",
+        "Outils de télédéclaration fiscale (e-tax, Impôts.gouv, DGI en ligne)",
+        "Archivage et dématérialisation des pièces comptables"
+      ]
+    }
+  ],
+
+  "prerequis": [
+    "Bac+3 minimum en comptabilité ou gestion (DECOFI, Licence Comptabilité-Gestion, BTS CG)",
+    "Expérience de 3 ans minimum en cabinet comptable ou entreprise dans l'espace OHADA",
+    "Connaissance du SYSCOHADA révisé (2017)",
+    "Maîtrise du cadre juridique OHADA",
+    "Maîtrise du français (langue de travail officielle)"
+  ],
+
+  "certifications_recommandees": [
+    "DESCOGEF (Diplôme d'Études Supérieures en Comptabilité et Gestion Financière) — OHADA",
+    "DEC (Diplôme d'Expertise Comptable) national",
+    "Certification SYSCOHADA (formations OHADA Business School)",
+    "Expert-Comptable agréé (Ordre National des Experts-Comptables du pays)"
+  ],
+
+  "evolution_possible": [
+    "Directeur Administratif et Financier (DAF)",
+    "Expert-Comptable / Commissaire aux Comptes",
+    "Contrôleur de gestion",
+    "Responsable audit interne",
+    "Consultant SYSCOHADA"
+  ],
+
+  "erreurs_courantes_a_eviter": [
+    "Confondre les comptes SYSCOHADA avec le PCG français (numérotation différente)",
+    "Omettre la distinction AO / HAO dans le compte de résultat",
+    "Négliger le Tableau des Flux de Trésorerie (obligatoire en système normal)",
+    "Ne pas appliquer le bon système comptable selon le chiffre d'affaires de l'entité",
+    "Ignorer les mises à jour du SYSCOHADA révisé 2017 (IFRS pour PME intégrées)",
+    "Confondre dépréciation et provision (terminologie révisée en 2017)",
+    "Oublier le dépôt des comptes annuels au RCCM dans les délais légaux"
+  ]
+}
