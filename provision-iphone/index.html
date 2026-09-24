@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Provisions CP & IFC</title>
+<meta name="description" content="Provisions congés payés et retraite (IFC) CMPC — moteur provision_engine.py exécuté localement sur l'iPhone.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Provisions">
+<meta name="theme-color" content="#3D4A1F">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+  :root {
+    --olive: #3D4A1F; --olive-soft: #5a6b30; --cream: #F0EDE4;
+    --bg: #F7F5EF; --card: #FFFFFF; --text: #1d2012; --muted: #5f6452;
+    --line: #dcd8cb; --ok: #2f6b2f; --warn: #8a5a00; --stop: #a40000;
+    --warn-bg: #fff4d6; --stop-bg: #fde8e8; --ok-bg: #e8f3e3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14170d; --card: #1e2214; --text: #ecebe3; --muted: #a9ad98;
+      --line: #353b25; --cream: #2a2f1c; --olive-soft: #9fb56a;
+      --ok: #8fd18f; --warn: #f0c060; --stop: #ff8a8a;
+      --warn-bg: #3a2f10; --stop-bg: #3d1616; --ok-bg: #1d3319;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14170d; --card: #1e2214; --text: #ecebe3; --muted: #a9ad98;
+    --line: #353b25; --cream: #2a2f1c; --olive-soft: #9fb56a;
+    --ok: #8fd18f; --warn: #f0c060; --stop: #ff8a8a;
+    --warn-bg: #3a2f10; --stop-bg: #3d1616; --ok-bg: #1d3319;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  header {
+    background: var(--olive); color: #fff; padding: 18px 16px 16px;
+  }
+  header h1 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -0.01em; }
+  header p { margin: 4px 0 0; font-size: 13px; opacity: .85; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  section {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px; margin-bottom: 14px;
+  }
+  h2 { margin: 0 0 10px; font-size: 16px; display: flex; gap: 8px; align-items: center; }
+  h2 .n {
+    width: 24px; height: 24px; border-radius: 50%; background: var(--olive); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex: none;
+  }
+  .muted { color: var(--muted); font-size: 13px; }
+  label { display: block; font-size: 14px; margin: 12px 0 4px; font-weight: 550; }
+  input[type=text], input[type=number] {
+    width: 100%; font-size: 17px; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text);
+  }
+  .file-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 14px; border: 1.5px dashed var(--olive-soft); border-radius: 12px;
+    color: var(--olive-soft); font-weight: 600; cursor: pointer; text-align: center;
+  }
+  .file-btn input { display: none; }
+  button {
+    width: 100%; padding: 14px; font-size: 17px; font-weight: 600; border: 0; border-radius: 12px;
+    background: var(--olive); color: #fff; margin-top: 14px; cursor: pointer;
+  }
+  button.secondary { background: transparent; color: var(--olive-soft); border: 1.5px solid var(--olive-soft); }
+  button:disabled { opacity: .45; cursor: default; }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; font-size: 14px; font-weight: 500; }
+  .check input { width: 22px; height: 22px; flex: none; margin: 0; accent-color: var(--olive); }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 0; font-size: 14px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+  .banner { border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-top: 10px; }
+  .banner.ok { background: var(--ok-bg); color: var(--ok); }
+  .banner.warn { background: var(--warn-bg); color: var(--warn); }
+  .banner.stop { background: var(--stop-bg); color: var(--stop); }
+  .banner b { display: block; margin-bottom: 2px; }
+  pre {
+    white-space: pre-wrap; word-break: break-word; font: 12.5px/1.45 ui-monospace, Menlo, monospace;
+    background: var(--cream); padding: 10px; border-radius: 10px; margin: 10px 0 0;
+  }
+  details { margin-top: 10px; font-size: 14px; }
+  summary { cursor: pointer; color: var(--olive-soft); font-weight: 600; }
+  ul.anom { padding-left: 18px; margin: 6px 0 0; font-size: 13px; }
+  ul.anom li { margin-bottom: 4px; }
+  .kpi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+  .kpi div { background: var(--cream); border-radius: 10px; padding: 10px; }
+  .kpi span { display: block; font-size: 12px; color: var(--muted); }
+  .kpi strong { font-size: 17px; font-variant-numeric: tabular-nums; }
+  .hidden { display: none !important; }
+  .spinner {
+    width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent;
+    border-radius: 50%; display: inline-block; animation: spin .8s linear infinite; vertical-align: -3px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  footer { text-align: center; font-size: 11.5px; color: var(--muted); padding: 4px 16px 24px; overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Provisions congés payés &amp; retraite</h1>
+  <p>CMPC · moteur provision_engine.py v1.2.0 · calcul 100 % local sur l'appareil</p>
+</header>
+
+<main>
+  <section id="boot">
+    <div id="bootMsg"><span class="spinner"></span> Chargement du moteur Python…</div>
+    <div class="muted" style="margin-top:6px">Premier lancement : ~14 Mo téléchargés une fois, ensuite disponible hors-ligne.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">1</span>Classeur modèle du mois</h2>
+    <div class="muted">Provision_Retraite_Congé_exo_MM AA.xlsm — onglets IAR, cnps*, retours congés, C, R.</div>
+    <label class="file-btn" style="margin-top:12px">
+      <input type="file" id="file">
+      <span id="fileLabel">Choisir le fichier (.xlsm / .xlsx)</span>
+    </label>
+    <details>
+      <summary>Options avancées</summary>
+      <label for="retours">Onglet retours congés (vide = auto-détection IAR!G12)</label>
+      <input type="text" id="retours" autocomplete="off" autocapitalize="off">
+      <label for="cnps">Onglet CNPS (vide = auto-détection cnps*)</label>
+      <input type="text" id="cnps" autocomplete="off" autocapitalize="off">
+      <label for="tol">Tolérance cross-check [L-6] (FCFA / ligne)</label>
+      <input type="number" id="tol" value="1" step="0.01" inputmode="decimal">
+    </details>
+    <button id="btnPreview" disabled>Lire les entrées</button>
+  </section>
+
+  <section id="secConfirm" class="hidden">
+    <h2><span class="n">2</span>Confirmer les entrées (I3)</h2>
+    <dl id="inputs"></dl>
+    <div id="previewBanners"></div>
+    <label class="check"><input type="checkbox" id="confirm"> Je confirme fichier, date d'arrêté, effectif et taux AT.</label>
+  </section>
+
+  <section id="secRun" class="hidden">
+    <h2><span class="n">3</span>Soldes GL avant OD</h2>
+    <div class="muted">Balance D365 du mois précédent. Laisser 0 → l'OD constate la dotation pleine.</div>
+    <label for="prevC">Provision congés brute — 4281x</label>
+    <input type="number" id="prevC" value="0" inputmode="decimal">
+    <label for="prevCh">Charges sociales s/ congés — 4382x</label>
+    <input type="number" id="prevCh" value="0" inputmode="decimal">
+    <label for="prevR">Provision retraite — 196100</label>
+    <input type="number" id="prevR" value="0" inputmode="decimal">
+    <button id="btnRun" disabled>Calculer les provisions</button>
+  </section>
+
+  <section id="secResult" class="hidden">
+    <h2><span class="n">4</span>Résultat</h2>
+    <div id="resultBanners"></div>
+    <div id="kpi" class="kpi"></div>
+    <pre id="stdout"></pre>
+    <button id="btnShare" class="hidden">Partager / Enregistrer dans Fichiers</button>
+    <a id="dl" class="hidden"><button class="secondary" type="button">Télécharger le .xlsx</button></a>
+  </section>
+</main>
+
+<footer id="foot">Aucune donnée ne quitte l'iPhone : le classeur est lu et calculé dans Safari.</footer>
+
+<script src="vendor/pyodide/pyodide.js"></script>
+<script>
+// Empreinte du moteur embarqué = copie à l'identique de scripts/provision_engine.py de la skill.
+// Toute divergence bloque le calcul (le moteur est la seule voie de calcul).
+const ENGINE_SHA256 = "0da26040111684215aac43b37032c3b8bb5cc34c8098e00cfc72bbc2981be30c";
+const WHEELS = ["vendor/wheels/et_xmlfile-2.0.0-py3-none-any.whl",
+                "vendor/wheels/openpyxl-3.1.5-py2.py3-none-any.whl"];
+const IN_PATH = "/work/entree", OUT_DIR = "/work/out";
+
+const $ = id => document.getElementById(id);
+let py = null, bridge = null, fileName = null, lastPreview = null;
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fcfa = n => new Intl.NumberFormat("fr-FR", {maximumFractionDigits: 2}).format(n);
+function banner(kind, title, body) {
+  return `<div class="banner ${kind}"><b>${esc(title)}</b>${body ? esc(body) : ""}</div>`;
+}
+function num(id) {
+  const v = parseFloat(String($(id).value).replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(v) ? v : 0;
+}
+
+async function sha256(buf) {
+  if (!crypto.subtle) return null;  // contexte non sécurisé (http:// hors localhost)
+  const h = await crypto.subtle.digest("SHA-256", buf);
+  return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function boot() {
+  try {
+    py = await loadPyodide({ indexURL: new URL("vendor/pyodide/", location.href).href });
+    for (const w of WHEELS) {
+      const buf = await (await fetch(w)).arrayBuffer();
+      py.unpackArchive(buf, "wheel");
+    }
+    const engBuf = await (await fetch("engine/provision_engine.py")).arrayBuffer();
+    const h = await sha256(engBuf);
+    if (h && h !== ENGINE_SHA256) {
+      $("bootMsg").innerHTML = banner("stop", "STOP — moteur modifié",
+        ` Empreinte ${h.slice(0, 12)}… ≠ attendue ${ENGINE_SHA256.slice(0, 12)}…. Calcul bloqué.`);
+      return;
+    }
+    const brBuf = await (await fetch("engine/bridge.py")).arrayBuffer();
+    py.FS.mkdirTree("/engine"); py.FS.mkdirTree(OUT_DIR);
+    py.FS.writeFile("/engine/provision_engine.py", new Uint8Array(engBuf));
+    py.FS.writeFile("/engine/bridge.py", new Uint8Array(brBuf));
+    py.runPython("import sys; sys.path.insert(0, '/engine')");
+    bridge = py.pyimport("bridge");
+    $("boot").classList.add("hidden");
+    $("foot").textContent = `Aucune donnée ne quitte l'iPhone. Moteur SHA-256 ${h ? h.slice(0, 16) + "… ✓" : "non vérifiable (contexte non HTTPS)"} · Pyodide ${py.version}`;
+    if (fileName) $("btnPreview").disabled = false;
+  } catch (e) {
+    $("bootMsg").innerHTML = banner("stop", "Échec du chargement du moteur", " " + e);
+  }
+}
+
+$("file").addEventListener("change", async ev => {
+  const f = ev.target.files[0];
+  resetFrom(2);
+  if (!f) return;
+  if (!/\.xls[xm]$/i.test(f.name)) {
+    $("fileLabel").textContent = "Format non pris en charge : " + f.name;
+    fileName = null; $("btnPreview").disabled = true; return;
+  }
+  fileName = f.name;
+  $("fileLabel").textContent = "📄 " + f.name;
+  const buf = new Uint8Array(await f.arrayBuffer());
+  const write = () => { py.FS.mkdirTree("/work"); py.FS.writeFile(IN_PATH + ext(f.name), buf); };
+  window._pendingWrite = write;
+  if (py) write();
+  $("btnPreview").disabled = !py;
+});
+const ext = n => n.toLowerCase().endsWith(".xlsm") ? ".xlsm" : ".xlsx";
+
+function resetFrom(step) {
+  if (step <= 2) { $("secConfirm").classList.add("hidden"); $("confirm").checked = false; lastPreview = null; }
+  if (step <= 3) { $("secRun").classList.add("hidden"); $("btnRun").disabled = true; }
+  $("secResult").classList.add("hidden");
+}
+
+$("btnPreview").addEventListener("click", async () => {
+  if (window._pendingWrite) window._pendingWrite();
+  const btn = $("btnPreview");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Lecture…';
+  await new Promise(r => setTimeout(r, 30));
+  resetFrom(2);
+  const p = JSON.parse(bridge.preview(IN_PATH + ext(fileName), $("retours").value.trim(), $("cnps").value.trim()));
+  btn.disabled = false; btn.textContent = "Relire les entrées";
+  $("secConfirm").classList.remove("hidden");
+  if (!p.ok) {
+    $("inputs").innerHTML = "";
+    $("previewBanners").innerHTML = banner("stop", "STOP — entrée illisible", " " + p.error);
+    return;
+  }
+  lastPreview = p;
+  $("inputs").innerHTML = [
+    ["Fichier", fileName], ["Date d'arrêté (IAR!G2)", p.arrete],
+    ["Effectif détecté", p.effectif + " salariés"],
+    ["Taux AT (IAR!G4)", (p.taux_at * 100).toLocaleString("fr-FR", {maximumFractionDigits: 3}) + " %"],
+    ["Onglet retours", p.retours || "— non détecté"], ["Onglet CNPS", p.cnps || "— non détecté"],
+    ["Cache C / R", `${p.cache.C} / ${p.cache.R} salariés`],
+  ].map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+  let b = "";
+  if (!p.retours || !p.cnps)
+    b += banner("stop", "Onglet non détecté", " Renseigner le nom dans Options avancées, puis relire.");
+  if (p.effectif > 30 && p.n_entree_absente / p.effectif > 0.15)
+    b += banner("stop", "Cache de formules vide probable",
+      ` ${p.n_entree_absente}/${p.effectif} salariés sans date d'entrée : le moteur s'arrêtera (anti-cache-vide v1.2). Recalculer le classeur dans Excel avant de relancer.`);
+  if (p.cache.C === 0 || p.cache.R === 0)
+    b += banner("warn", "Cross-check [L-6] non effectué",
+      ` Onglet ${p.cache.C === 0 ? "C" : ""}${p.cache.C === 0 && p.cache.R === 0 ? " et " : ""}${p.cache.R === 0 ? "R" : ""} sans valeurs en cache : le moteur affichera « OK » sans avoir comparé. Ouvrir et enregistrer le classeur dans Excel pour peupler le cache.`);
+  const d = new Date(p.arrete.split("/").reverse().join("-"));
+  const fin = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  if (d.getDate() !== fin)
+    b += banner("warn", "Date d'arrêté hors fin de mois", " Vérifier IAR!G2 — ne jamais la déduire du nom de fichier.");
+  if (p.controles.length)
+    b += `<details><summary>${p.controles.length} anomalie(s) d'entrée — seront listées en CONTROLES</summary><ul class="anom">${
+      p.controles.map(([n, m]) => `<li><b>${esc(n)}</b> — ${esc(m)}</li>`).join("")}</ul></details>`;
+  $("previewBanners").innerHTML = b;
+});
+
+$("confirm").addEventListener("change", e => {
+  const ok = e.target.checked && lastPreview && lastPreview.ok;
+  $("secRun").classList.toggle("hidden", !ok);
+  $("btnRun").disabled = !ok;
+});
+
+$("btnRun").addEventListener("click", async () => {
+  const btn = $("btnRun");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Calcul…';
+  await new Promise(r => setTimeout(r, 30));
+  const r = JSON.parse(bridge.run(IN_PATH + ext(fileName), OUT_DIR, num("prevC"), num("prevCh"), num("prevR"),
+    num("tol") || 1, $("retours").value.trim(), $("cnps").value.trim()));
+  btn.disabled = false; btn.textContent = "Recalculer";
+  showResult(r);
+});
+
+function showResult(r) {
+  $("secResult").classList.remove("hidden");
+  $("stdout").textContent = r.stdout || "";
+  $("kpi").innerHTML = ""; $("btnShare").classList.add("hidden"); $("dl").classList.add("hidden");
+  if (r.status !== "ok") {
+    $("resultBanners").innerHTML = banner("stop", r.status === "stop" ? "STOP — le moteur a bloqué la livraison" : "Erreur d'exécution", " " + r.message);
+    return;
+  }
+  const g = re => { const m = r.stdout.match(re); return m ? parseFloat(m[1].replace(/,/g, "")) : null; };
+  const vals = [["Provision congés", g(/Provision congés\s*:\s*([\d,.]+)/)],
+                ["Charges s/ congés", g(/Provision congés[^\n]*charges ([\d,.]+)/)],
+                ["Provision retraite", g(/Provision retraite\s*:\s*([\d,.]+)/)],
+                ["Charges s/ retraite", g(/Provision retraite[^\n]*charges ([\d,.]+)/)]];
+  $("kpi").innerHTML = vals.map(([k, v]) => `<div><span>${esc(k)}</span><strong>${v === null ? "—" : fcfa(v)}</strong></div>`).join("");
+  const xcOk = /Cross-check \[L-6\]\s*:\s*OK/.test(r.stdout);
+  let b = "";
+  if (!xcOk) b += banner("stop", "Cross-check [L-6] : écarts ou absents",
+    " Ouvrir l'onglet CONTROLES. Écarts normaux = uniquement les corrections listées (code L/E, salarié réintégré) ; tout autre écart = STOP, investiguer avant usage.");
+  else if (lastPreview && (lastPreview.cache.C === 0 || lastPreview.cache.R === 0))
+    b += banner("warn", "Cross-check [L-6] « OK » sans comparaison réelle", " Cache C/R vide : résultat non recoupé.");
+  else if (lastPreview && lastPreview.effectif > 50)
+    b += banner("warn", "Cross-check OK sur un effectif > 50", " Vérifier que ce n'est pas un cache vide avant de conclure (SKILL.md, étape 4).");
+  else b += banner("ok", "Cross-check [L-6] OK", "");
+  b += banner("warn", "[NON VALIDÉ GM-1]",
+    " Le validateur de livrables n'est pas embarqué dans l'app : passer le fichier au validateur (Cowork) avant remise. OD à faire valider par JM avant saisie D365 ; comptes 4281x / 4382x [COMPTE À DÉTERMINER].");
+  $("resultBanners").innerHTML = b;
+
+  const data = py.FS.readFile(r.fichier);
+  const name = r.fichier.split("/").pop();
+  const mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  const blob = new Blob([data], { type: mime });
+  const a = $("dl");
+  if (a.href) URL.revokeObjectURL(a.href);
+  a.href = URL.createObjectURL(blob); a.download = name; a.classList.remove("hidden");
+  const file = new File([blob], name, { type: mime });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    const s = $("btnShare");
+    s.classList.remove("hidden");
+    s.onclick = () => navigator.share({ files: [file], title: name }).catch(() => {});
+  }
+}
+
+if ("serviceWorker" in navigator) {
+  try { navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) {}
+}
+boot();
+</script>
+</body>
+</html>
